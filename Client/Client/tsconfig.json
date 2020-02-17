@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+      "outDir": "./dist", // 生成的所有文件放在dist目录下
+      "allowJs": true, // 接受javascript作为输入
+      "target": "es5" // 将代码转为es5版本
+  },
+  "include": [
+      "./src/**/*" // 读取所有可识别的src目录下的文件
+  ]
+}
