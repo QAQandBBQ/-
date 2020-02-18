@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FormData格式上传文件</title>
+</head>
+<body>
+  <input id="fileId" type="file" accept="image/*" />
+  <br>
+  <img id="imgContainer" src="" alt="">
+  <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script>
+  <script src="./js/ajax.js"></script>
+  <script>
+    fileId.onchange = async function() {
+      // 拿到文件对象
+      let file = fileId.files[0];
+      // formData格式的数据 与后端协商
+      // PARAMS: [FormData]
+	    // chunk:文件对象
+	    // filename:文件名（HASH+后缀）
+      let formData = new FormData();
+      formData.append('chunk', file);
+      formData.append('filename', onFormatName(file.name).hashName)
+
+      // 发送ajax请求
+      let res = await $ajax({
+        url: 'http://127.0.0.1:8080/formdata',
+        data: formData
+      })
+
+      if (res.status_code === 200) {
+        imgContainer.src = res.data.img_path;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>切片上传以及进度条的检测</title>
+</head>
+<body>
+  <input id="fileId" type="file" accept="image/*" />
+  <span id="process" >0%</span>
+  <br>
+  <img id="imgContainer" src="" alt="">
+  <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script>
+  <script src="./js/ajax.js"></script>
+  <script>
+
+    // 利用proxy响应式
+    let loadProcess = new Proxy({process: 0}, {
+      set: (target, key, value) => {
+        target[key] = value;
+        if (value >= 100) {
+          process.innerHTML = '上传完成';
+          return
+        }
+        process.innerHTML =  `${value}%`;
+      }
+    })
+
+    // 原理：利用http可以并发请求（5~6个）；
+    //       Blob.prototype.slice可以把一个文件切片处理，flie是Blob的实例；
+    fileId.onchange = async () => {
+      let file = fileId.files[0], 
+        partList = [], curPart = 0, part = 5;
+      
+      let partSize = file.size / 5;
+      // 每次上传后清零进度
+      process.innerHTML = '0%'
+
+      let {
+        hash,
+        suffix,
+        hashName
+      } = onFormatName(file.name);
+      
+      // 分割切片
+      for(let i = 0; i < part; i++) {
+        partList.push({
+          chunk: file.slice(curPart, curPart + partSize),
+          filename: `${hash}-${i}.${suffix}`
+        })
+        curPart += partSize;
+      }
+
+      // 发送切片请求
+      partList = partList.map((v, index) => {
+        // formdata数据格式
+        let formData = new FormData();
+        formData.append('chunk', v.chunk)
+        formData.append('filename', v.filename)
+        return $ajax({
+          url: 'http://127.0.0.1:8080/chunk',
+          data: formData
+        }).then(({status_code}) => {
+          if (status_code === 200) {
+            loadProcess.process += 20; // 切片为5，为此；
+            return Promise.resolve(status_code)
+          }
+          return Promise.reject(status_code)
+        })
+      })
+      
+      Promise.all(partList).then(async () => {
+        // 合并请求
+        let res = await $ajax({
+          url: 'http://127.0.0.1:8080/merge',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          data: `filename=${hashName}`
+          })
+        if (res.status_code === 200) {
+        imgContainer.src = res.data.img_path;
+      }
+      }).catch(() => {
+        alert('网络故障，请重试！')
+      })
+    }
+  </script>
+</body>
+</html>

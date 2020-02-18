@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>base64格式上传文件</title>
+</head>
+<body>
+  <input id="fileId" type="file" accept="image/*" />
+  <br>
+  <img id="imgContainer" src="" alt="">
+  <script src="http://cdn.bootcss.com/blueimp-md5/1.1.0/js/md5.js"></script>
+  <script src="./js/ajax.js"></script>
+  <script>
+    // 处理文件为base64的格式；
+    function fileFormatAsBase64(file) {
+      return new Promise(resolve => {
+        // new base64文件读取器
+        let fileRead = new FileReader();
+        fileRead.readAsDataURL(file)
+        // 异步回调
+        fileRead.onload = ev => {
+          return resolve(ev.target.result)
+        }
+      })
+    }
+    fileId.onchange = async function() {
+      // 拿到文件对象
+      let file = fileId.files[0];
+      //  PARAMS: [application/x-www-form-urlencoded]
+        // chunk:文件的BASE64（防止乱码需要encodeURIComponent编码）
+        // filename:文件名（HASH+后缀）
+      // base64 发送数据的格式为chunk=''&filename=''
+      let base64 = await fileFormatAsBase64(file);
+      let fileName = onFormatName(file.name).hashName;
+      // 发送ajax请求
+      let res = await $ajax({
+        url: 'http://127.0.0.1:8080/basedata',
+        headers: {
+          'Content-type': 'application/x-www-form-urlencoded'
+        },
+        data: `chunk=${encodeURIComponent(base64)}&filename=${fileName}`
+      })
+      console.log(res,  '-----------')
+
+      if (res.status_code === 200) {
+        imgContainer.src = res.data.img_path;
+      }
+    }
+  </script>
+</body>
+</html>

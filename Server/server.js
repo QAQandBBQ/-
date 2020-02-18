@@ -1,14 +1,19 @@
 const CONFIG = require('./config'),
-	bodyParser = require('body-parser'),
-	multiparty = require('multiparty'),
+	bodyParser = require('./node_modules/body-parser'),
+	multiparty = require('./node_modules/multiparty'), // 处理POST请求
 	fs = require('fs'),
 	path = require('path');
 
+// 控制台颜色
+const chalk = require('./node_modules/chalk');
+const red = chalk.red.bold;
+const green = chalk.green.bold.underline;
+
 /*-CREATE SERVER-*/
-const express = require('express'),
+const express = require('./node_modules/express'),
 	app = express();
 app.listen(CONFIG.PORT, () => {
-	console.log(`SERVICE IS OK ===> ${CONFIG.PORT}`);
+	console.log(red('Server running is ') + green(`http://127.0.0.1/:${CONFIG.PORT}`));
 });
 
 /*-MIDDLE WARE-*/
@@ -33,12 +38,13 @@ app.use(bodyParser.urlencoded({
 /*-API-*/
 const upload_dir = path.resolve(__dirname, "", "upload");
 
-app.post('/single', (req, res) => {
+app.post('/formdata', (req, res) => {
 	new multiparty.Form().parse(req, function (err, fields, file) {
 		if (err) {
 			res.send({
-				code: 1,
-				codeText: err
+				status_code: 400,
+				message: err.message,
+				data: err
 			});
 			return;
 		}
@@ -52,26 +58,31 @@ app.post('/single', (req, res) => {
 			fs.unlinkSync(chunk.path);
 		});
 		res.send({
-			code: 0,
-			codeText: '',
-			path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+			status_code: 200,
+			message: '请求成功',
+			data: {
+				img_path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+			}
 		});
 	});
 });
 
-app.post('/single2', (req, res) => {
+app.post('/basedata', (req, res) => {
 	let {
 		chunk,
 		filename
 	} = req.body;
 	let chunk_dir = `${upload_dir}/${filename}`;
+	// 转移chunk并替换掉文件开头部分
 	chunk = decodeURIComponent(chunk).replace(/^data:image\/\w+;base64,/, "");
 	chunk = Buffer.from(chunk, 'base64');
 	fs.writeFileSync(chunk_dir, chunk);
 	res.send({
-		code: 0,
-		codeText: '',
-		path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+		status_code: 200,
+			message: '请求成功',
+			data: {
+				img_path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+			}
 	});
 });
 
@@ -100,8 +111,8 @@ app.post('/chunk', (req, res) => {
 			fs.unlinkSync(chunk.path);
 		});
 		res.send({
-			code: 0,
-			codeText: ''
+			status_code: 200,
+			message: '请求成功'
 		});
 	});
 });
@@ -121,9 +132,11 @@ app.post('/merge', (req, res) => {
 	});
 	fs.rmdirSync(filepath);
 	res.send({
-		code: 0,
-		codeText: '',
-		path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+		status_code: 200,
+			message: '请求成功',
+			data: {
+				img_path: `http://127.0.0.1:${CONFIG.PORT}/upload/${filename}`
+			}
 	});
 });
 

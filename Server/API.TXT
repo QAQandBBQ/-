@@ -1,5 +1,5 @@
 ﻿1.上传单张图片（FormData）
-URL: /single
+URL: /formdata
 METHOD: post
 PARAMS: [FormData]
 	chunk:文件对象
@@ -12,7 +12,7 @@ RETURN: [JSON]
 	}
 
 2.上传单张图片（BASE64）
-URL: /single2
+URL: /basedata
 METHOD: post
 PARAMS: [application/x-www-form-urlencoded]
 	chunk:文件的BASE64（防止乱码需要encodeURIComponent编码）

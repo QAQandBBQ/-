@@ -1,5 +1,5 @@
 module.exports = {
-	PORT: 5678,
+	PORT: 8080,
 	CROS: {
 		ALLOW_ORIGIN: '*',
 		ALLOW_METHODS: 'PUT,POST,GET,DELETE,OPTIONS,HEAD',

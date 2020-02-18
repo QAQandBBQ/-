@@ -81,3 +81,9 @@ data = `chunk=${encodeURLComponent(base64)}&filename=${file.name}`
 1. 切片上传时，监听切片上传的数量！
 2. 利用`XMLHttpRequest.upload.onprogress`方法，回调函数包含了上传进度信息！
 
+
+
+#  Server文件为服务端文件；
+
+##  启动服务 `npm start`即可！！！！
+
